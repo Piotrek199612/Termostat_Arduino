@@ -1,0 +1,177 @@
+#include <LiquidCrystal.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+#define ONE_WIRE_BUS 4
+#define TEMPERATURE_PRECISION 12
+OneWire oneWire(ONE_WIRE_BUS);
+
+DallasTemperature sensors(&oneWire);
+
+DeviceAddress Thermometer;
+
+const int KEY_UP = 0;
+const int KEY_DOWN = 1;
+const int KEY_OK = 2;
+const int KEY_BACK = 3;
+const int HEATER = 5;
+const int LED = 6;
+const int MAX_PROCESS_NUMBER = 10;
+LiquidCrystal lcd(12, 11, 7, 8, 9, 10);
+
+byte customChar[8] = {
+  0b01110,
+  0b01010,
+  0b01110,
+  0b00000,
+  0b01010,
+  0b01100,
+  0b01100,
+  0b01010
+};
+
+class Phase
+{
+  private:
+    int temperature;
+    int duration;
+  public:
+    int get_temperature() {
+      return temperature;
+    };
+    int get_duration() {
+      return duration;
+    };
+    void set_temperature(int temp) {
+      temperature = temp;
+    };
+    void set_duration (int dur) {
+      duration = dur;
+    };
+    Phase (int temp, int dur)
+    {
+      temperature = temp;
+      duration = dur;
+    };
+    Phase() {};
+};
+
+class Process
+{
+  private:
+    String name;
+   
+    bool is_empty;
+  public: 
+  int number_of_phases;
+  Phase phases [6];
+    String Get_Name() {
+      return name;
+    };
+    bool Is_Empty() {
+      return is_empty;
+    };
+    void Set_Name(String nam) {
+      name = nam;
+    };
+    void Add_Phase(int temperature, int duration) {
+      phases[number_of_phases].set_temperature(temperature);
+      phases[number_of_phases].set_duration(duration);
+    };
+    void Set_Empty() {
+      is_empty = true;
+    };
+    int Get_Number_Of_Phases(){return number_of_phases;};
+    void Set_Non_Empty() {
+      is_empty = false;
+    };
+    Process (String nam) {
+      name = nam;
+      number_of_phases = 0;
+      is_empty = true;
+    };
+    Process() {
+      number_of_phases = 0;
+      is_empty = true;
+    };
+};
+
+
+Process ProcessTable [MAX_PROCESS_NUMBER];
+
+  
+  void Set_Up_Processes()
+{
+    ProcessTable[0].Set_Name("Piwo Pszeniczne");
+    ProcessTable[0].Set_Non_Empty();
+    ProcessTable[0].number_of_phases = 5;
+    ProcessTable[0].phases[0].set_duration(12);
+    ProcessTable[0].phases[0].set_temperature(44);
+    ProcessTable[0].phases[1].set_duration(10);
+    ProcessTable[0].phases[1].set_temperature(50);
+    ProcessTable[0].phases[2].set_duration(5);
+    ProcessTable[0].phases[2].set_temperature(62);
+    ProcessTable[0].phases[3].set_duration(5);
+    ProcessTable[0].phases[3].set_temperature(72);
+    ProcessTable[0].phases[4].set_duration(2);
+    ProcessTable[0].phases[4].set_temperature(78);
+    ProcessTable[1].Set_Name("Porter Baltycki");
+    ProcessTable[1].Set_Non_Empty();
+      ProcessTable[1].number_of_phases = 4;
+      ProcessTable[1].phases[0].set_duration(5);
+      ProcessTable[1].phases[0].set_temperature(55);
+      ProcessTable[1].phases[1].set_duration(25);
+      ProcessTable[1].phases[1].set_temperature(64);
+      ProcessTable[1].phases[2].set_duration(45);
+      ProcessTable[1].phases[2].set_temperature(72);//koniec
+      ProcessTable[1].phases[3].set_duration(2);
+      ProcessTable[1].phases[3].set_temperature(78);
+    ProcessTable[2].Set_Name("Lager");
+    ProcessTable[2].Set_Non_Empty();
+      ProcessTable[2].number_of_phases = 4;
+      ProcessTable[2].phases[0].set_duration(10);
+      ProcessTable[2].phases[0].set_temperature(55);
+      ProcessTable[2].phases[1].set_duration(30);
+      ProcessTable[2].phases[1].set_temperature(62);
+      ProcessTable[2].phases[2].set_duration(30);
+      ProcessTable[2].phases[2].set_temperature(72);//koniec
+      ProcessTable[2].phases[3].set_duration(2);
+      ProcessTable[2].phases[3].set_temperature(78);
+    ProcessTable[3].Set_Name("Janusza");    
+    ProcessTable[3].Set_Non_Empty();
+      ProcessTable[3].number_of_phases = 3;
+      ProcessTable[3].phases[0].set_duration(15);
+      ProcessTable[3].phases[0].set_temperature(55);
+      ProcessTable[3].phases[1].set_duration(60);
+      ProcessTable[3].phases[1].set_temperature(64);
+      ProcessTable[3].phases[2].set_duration(2);
+      ProcessTable[3].phases[2].set_temperature(78);
+    ProcessTable[4].Set_Name("----Wolny-4---");
+    ProcessTable[5].Set_Name("----Wolny-5---");
+    ProcessTable[6].Set_Name("----Wolny-6---");
+    ProcessTable[7].Set_Name("----Wolny-7---");
+    ProcessTable[8].Set_Name("----Wolny-8---");
+    ProcessTable[9].Set_Name("----Wolny-9---");
+  }
+
+  void setup()
+  {
+    lcd.createChar(1, customChar);
+    lcd.begin(16, 2);
+    Serial.begin(9600);
+    pinMode(KEY_UP, INPUT);
+    pinMode(KEY_DOWN, INPUT);
+    pinMode(KEY_OK, INPUT);
+    pinMode(KEY_BACK, INPUT);
+    pinMode(HEATER, OUTPUT);
+    pinMode(LED, OUTPUT);
+    sensors.begin();
+    sensors.getAddress(Thermometer, 0);
+    sensors.setResolution(Thermometer, TEMPERATURE_PRECISION);
+    Set_Up_Processes();
+  }
+
+  void loop()
+  {
+    Main_Menu();
+  }
